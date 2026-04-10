@@ -3,9 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
+	"sort"
 
 	"github.com/xuri/excelize/v2"
 )
+
+type Sheet struct {
+	ID   int
+	Name string
+}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -22,7 +29,22 @@ func main() {
 	defer f.Close()
 
 	sheetMap := f.GetSheetMap()
-	for name := range sheetMap {
-		fmt.Println(name)
+	var cwSheets []Sheet
+
+	re := regexp.MustCompile(`^KW\d{2}$`)
+
+	for id, name := range sheetMap {
+		if re.MatchString(name) {
+			cwSheets = append(cwSheets, Sheet{ID: id, Name: name})
+		}
+	}
+
+	// Sort by sheet name (alphabetically)
+	sort.Slice(cwSheets, func(i, j int) bool {
+		return cwSheets[i].Name < cwSheets[j].Name
+	})
+
+	for _, sheet := range cwSheets {
+		fmt.Println(sheet.Name)
 	}
 }
